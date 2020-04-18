@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.electricity.mapper.base.OrganizationMapper">
+
+    <cache eviction="FIFO" flushInterval="10000" size="512" readOnly="true"/>
+
+    <insert id="insertOrganizationPermission">
+        insert into organization_permission
+            (organization_id, permission_id)
+        values (#{organizationId}, #{permissionId})
+    </insert>
+
+    <delete id="deleteOrganizationPermission">
+        delete from organization_permission
+        where organization_id = #{organizationId}
+           or permission_id = #{permissionId}
+    </delete>
+
+    <select id="selectOrgPermissionByOrgId" parameterType="string" resultType="com.electricity.model.base.Permission">
+        select p.permission_id,p.permission_name,p.permission_value,
+        p.permission_type,p.permission_status,p.superior_id
+        FROM organization_permission op,permission p
+        WHERE op.permission_id = p.permission_id
+        AND op.organization_id = #{organizationId}
+    </select>
+    <select id="findOrganizations" parameterType="string" resultType="com.electricity.model.base.Organization">
+        SELECT o.* FROM organization o LEFT JOIN `user` u ON o.organization_id = u.`organization_id` WHERE 1=1
+        AND o.organization_id LIKE '${organizationId}%'
+        <if test="userId !=null">
+            AND u.user_id = '${userId}%'
+        </if>
+        <if test="organizationName !=null and organizationName != ''">
+            and o.organizationName like '${organizationName}%'
+        </if>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.electricity.mapper.base.PermissionMapper">
+
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+
+    <select id="findPermissionById" parameterType="integer" resultType="java.lang.Integer">
+        (select b.permission_id from permission b where exists
+        (select a.permission_id from permission a where a.superior_id = #{permissionId} and b.superior_id = a.permission_id)
+        and b.permission_type = 3) union (select a.permission_id from permission a where a.superior_id = #{permissionId})
+    </select>
+
+
+    <select id="findPermission" parameterType="map" resultType="com.electricity.model.base.Permission">
+        (SELECT p.* FROM permission p LEFT JOIN organization_permission op
+        ON op.`permission_id`=p.`permission_id`
+        WHERE op.organization_id=(SELECT organization_id FROM `user` WHERE user_id=#{userId})
+        <if test="permissionName !=null and permissionName != ''">
+            and p.permission_name like '${permissionName}%'
+        </if>
+        )
+        UNION (SELECT p.* FROM permission p LEFT JOIN user_permission up ON up.`permission_id`=p.`permission_id`
+        WHERE up.user_id=#{userId}
+        <if test="permissionName !=null and permissionName != ''">
+            and p.permission_name like '${permissionName}%'
+        </if>
+        )
+    </select>
+</mapper>

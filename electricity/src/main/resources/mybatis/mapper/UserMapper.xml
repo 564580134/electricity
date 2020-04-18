@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.electricity.mapper.base.UserMapper">
+
+    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+
+    <resultMap type="com.electricity.model.base.User" id="UserResuleMap">
+        <id property="userId" column="user_id"/>
+        <result property="account" column="account"/>
+        <result property="userName" column="user_name"/>
+        <result property="sex" column="sex"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="organizationId" column="organization_id"/>
+        <result property="status" column="status"/>
+        <result property="isDelete" column="is_delete"/>
+        <result property="password" column="password"/>
+        <result property="salt" column="salt"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <association property="organization" javaType="com.electricity.model.base.Organization">
+            <id property="organizationId" column="o_id"/>
+            <result property="organizationName" column="organization_name"/>
+            <result property="description" column="description"/>
+            <result property="superiorId" column="superior_id"/>
+            <result property="createTime" column="o_create_time"/>
+            <result property="updateTime" column="o_update_time"/>
+        </association>
+        <collection property="roles" ofType="com.electricity.model.base.Role" select="findRoleByUserId"
+                    column="user_id">
+            <id property="roleId" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+        </collection>
+        <collection property="userPermissionList" ofType="com.electricity.model.base.Permission"
+                    select="findPermissionByUserId" column="user_id">
+            <id property="permissionId" column="permission_id"/>
+            <result property="permissionName" column="permission_name"/>
+        </collection>
+    </resultMap>
+
+    <resultMap type="com.electricity.model.base.Role" id="RoleReusltMap">
+        <id property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <collection property="permissionList" ofType="com.electricity.model.base.Permission"
+                    select="findPermissionByRoleId" column="role_id">
+            <id property="permissionId" column="permission_id"/>
+            <result property="permissionName" column="permission_name"/>
+        </collection>
+    </resultMap>
+
+    <!-- 查询用户根据Id -->
+    <select id="findUserById" parameterType="integer" resultMap="UserResuleMap">
+        select u.*, o.*, o.organization_id as o_id, o.create_time as o_create_time, o.update_time as o_update_time
+        from user u
+                 left join organization o
+                           on u.organization_id = o.organization_id
+        where u.user_id = #{userId}
+    </select>
+
+    <!-- 查询用户根据账号 -->
+    <select id="findUserByAccount" parameterType="map" resultMap="UserResuleMap">
+        select u.*,o.*,o.organization_id as o_id,o.create_time as o_create_time,o.update_time as o_update_time
+        from user u
+        left join organization o
+        on u.organization_id = o.organization_id
+        where (u.account = #{account}
+        or u.phone = #{account}
+        or u.email = #{account})
+        <if test="userId != null and userId != ''">
+            and u.user_id != #{userId}
+        </if>
+    </select>
+
+    <!-- 查询用户根据条件 -->
+    <select id="findUserByCondition" parameterType="string" resultMap="UserResuleMap">
+        select u.*,o.*,o.organization_id as o_id,o.create_time as o_create_time,o.update_time as o_update_time
+        from user u
+        left join organization o
+        on u.organization_id = o.organization_id
+        where u.is_delete = 0
+        and u.user_id != 0
+        AND o.organization_id LIKE '${organizationId}%'
+        <if test="userId !=null">
+            AND user_id = '${userId}%'
+        </if>
+        <if test="userName !=null and userName != ''">
+            and u.user_name like '%${userName}%'
+        </if>
+    </select>
+
+    <!-- UserResuleMap -->
+    <select id="findRoleByUserId" parameterType="integer" resultMap="RoleReusltMap">
+        select r.*
+        from user_role ur
+                 left join role r
+                           on ur.role_id = r.role_id
+        where ur.user_id = #{user_id}
+    </select>
+
+    <!-- UserResuleMap -->
+    <select id="findPermissionByRoleId" parameterType="integer" resultType="com.electricity.model.base.Permission">
+        select p.*
+        from role_permission rp
+                 left join permission p
+                           on rp.permission_id = p.permission_id
+        where rp.role_id = #{role_id}
+    </select>
+
+    <!-- UserResuleMap -->
+    <select id="findPermissionByUserId" parameterType="integer" resultType="com.electricity.model.base.Permission">
+        (SELECT  p.* FROM  permission p LEFT JOIN role_permission op
+          ON op.`permission_id`=p.`permission_id`
+        WHERE op.role_id=(SELECT role_id FROM `user` WHERE user_id=#{user_id}) )
+        UNION (SELECT  p.* FROM  permission p LEFT JOIN user_permission up ON up.`permission_id`=p.`permission_id` WHERE up.user_id=#{user_id} )
+    </select>
+
+    <!-- 新增用户权限 -->
+    <insert id="insertUserPermission">
+        insert into user_permission
+            (user_id, permission_id)
+        values (#{userId}, #{permissionId})
+    </insert>
+
+    <!-- 删除用户权限 -->
+    <delete id="deleteUserPermission">
+        delete from user_permission
+        where user_id = #{userId}
+           or permission_id = #{permissionId}
+    </delete>
+
+    <!-- 添加用户角色 -->
+    <insert id="insertUserRole">
+        insert into user_role
+            (user_id, role_id)
+        values (#{userId}, #{roleId})
+    </insert>
+
+    <!-- 删除用户角色根据用户Id -->
+    <delete id="deleteUserRoleByUserId">
+        delete
+        from user_role
+        where user_id = #{userId}
+    </delete>
+
+    <!-- 删除用户角色根据角色Id -->
+    <delete id="deleteUserRoleByRoleId">
+        delete
+        from user_role
+        where role_id = #{roleId}
+    </delete>
+
+    <!-- 根据组织Id查询用户 -->
+    <select id="findUserByOrganizationId" parameterType="string" resultMap="UserResuleMap">
+        select u.*, o.*, o.organization_id as o_id, o.create_time as o_create_time, o.update_time as o_update_time
+        from user u
+                 left join organization o
+                           on u.organization_id = o.organization_id
+        where u.organization_id like '%${organizationId}%'
+          and u.is_delete = 0
+    </select>
+
+    <select id="findTeacherByOrganizationId" parameterType="string" resultMap="UserResuleMap">
+        select u.*, o.*, o.organization_id as o_id, o.create_time as o_create_time, o.update_time as o_update_time
+        from user u
+                 left join organization o
+                           on u.organization_id = o.organization_id
+        where u.organization_id like '%${organizationId}%'
+          and u.user_type = 0
+          and u.is_delete = 0
+    </select>
+
+    <select id="findUserRoleByUserIdAndRoleId" resultType="java.util.Map">
+        select a.* from user_role a
+        where a.user_id=#{userId}
+            and a.role_id = #{role}
+    </select>
+
+    <select id="findUserByOrganization" resultType="java.lang.Integer">
+        SELECT
+            count(1)
+        FROM
+            teacher b
+        WHERE
+                b.teacher_id IN (
+                SELECT
+                    a.user_id
+                FROM
+                    `user` a
+                WHERE
+                    a.organization_id = #{assessmentObjOrganization}
+            )
+          AND b.lead = #{assessmentObj}
+    </select>
+
+    <select id="findUserByExample" parameterType="map" resultType="com.electricity.model.base.User">
+        SELECT
+        u.user_id,u.account,u.user_name,u.sex,u.phone,u.email,o.organization_name,u.status,u.update_time,u.organization_id
+        FROM user u ,organization o
+        WHERE u.organization_id = o.organization_id
+        AND u.is_delete = 0
+        <if test="userName!=null and userName!=''">
+            AND u.user_name LIKE #{userName}
+        </if>
+        <if test="organizationId!=null and organizationId!=''">
+            AND u.organization_id LIKE #{organizationId}
+        </if>
+        ORDER BY u.user_id DESC
+        LIMIT #{pageNum},#{pageSize}
+    </select>
+
+
+    <select id="findUserCountByExample" parameterType="map" resultType="integer">
+        SELECT COUNT(1)
+        FROM user u ,organization o
+        WHERE u.organization_id = o.organization_id
+        AND u.is_delete = 0
+        <if test="userName!=null and userName!=''">
+            AND u.user_name LIKE #{userName}
+        </if>
+        <if test="organizationId!=null and organizationId!='' ">
+            AND u.organization_id LIKE #{organizationId}
+        </if>
+    </select>
+</mapper>
