@@ -31,11 +31,14 @@ import java.util.List;
 @RequestMapping("/organization")
 public class OrganizationController {
 
-    @Autowired
-    private OrganizationService organizationService;
+    final OrganizationService organizationService;
 
-    @Autowired
-    private OrganizationPermissionService organizationPermissionService;
+    final OrganizationPermissionService organizationPermissionService;
+
+    public OrganizationController(OrganizationService organizationService, OrganizationPermissionService organizationPermissionService) {
+        this.organizationService = organizationService;
+        this.organizationPermissionService = organizationPermissionService;
+    }
 
 
     @ApiOperation(value = "添加组织")
@@ -45,7 +48,7 @@ public class OrganizationController {
             @ApiImplicitParam(name = "superiorId", value = "上级id", required = true, type = "string"),
     })
     @PostMapping("/insertOrganization")
-    @RequiresPermissions(permissions = {"system_manage:organization_manage:organization_manage:insert"})
+    @RequiresPermissions(permissions = {"system_manage:organization_manage:insert"})
     public ServerResponse insertOrganization(@RequestParam("organizationName") String organizationName,
                                              @RequestParam("description") String description,
                                              @RequestParam(value = "superiorId", defaultValue = "00") String superiorId) {
@@ -73,7 +76,7 @@ public class OrganizationController {
             @ApiImplicitParam(name = "superiorId", value = "上级id", required = true, type = "string"),
     })
     @PostMapping("/updateOrganization")
-    @RequiresPermissions(permissions = {"system_manage:organization_manage:organization_manage:update"})
+    @RequiresPermissions(permissions = {"system_manage:organization_manage:update"})
     public ServerResponse updateOrganization(@RequestParam("organizationId") String organizationId,
                                              @RequestParam("organizationName") String organizationName,
                                              @RequestParam("description") String description,
@@ -94,42 +97,15 @@ public class OrganizationController {
     @ApiOperation(value = "删除组织")
     @ApiImplicitParam(name = "organizationIds", value = "组织Id", required = true, type = "string")
     @PostMapping("/deleteOrganization")
-    @RequiresPermissions(permissions = {"system_manage:organization_manage:organization_manage:delete"})
+    @RequiresPermissions(permissions = {"system_manage:organization_manage:delete"})
     public ServerResponse deleteOrganization(@RequestParam("organizationIds") String[] organizationIds) {
-        if (organizationIds==null) {
+        if (organizationIds == null) {
             ServerResponse.createByError("请选择删除对象");
-        }else if(organizationIds.length==0){
+        } else if (organizationIds.length == 0) {
             ServerResponse.createByError("请选择删除对象");
         }
         organizationService.deleteOrganization(organizationIds);
         return ServerResponse.createBySuccessMessage("删除组织成功");
-    }
-
-
-    @ApiOperation(value = "新增组织权限信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "organizationId", value = "组织Id", required = true, type = "string"),
-            @ApiImplicitParam(name = "permissionIds", value = "权限Id", required = true, type = "integer"),
-    })
-    @PostMapping("/insertOrganizationPermission")
-    //@RequiresPermissions(permissions = {"system_manage:organization_manage:organization_manage:delete"})
-    public ServerResponse insertRolePermission(@RequestParam("organizationId") String organizationId,
-                                               @RequestParam("permissionIds") Integer[] permissionIds) {
-        organizationPermissionService.insertRolePermission(organizationId, permissionIds);
-        return ServerResponse.createBySuccessMessage("新增组织权限成功");
-    }
-
-    @ApiOperation(value = "根据组织权编号查询权限")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "organizationId", value = "组织Id", required = true, type = "string")
-    })
-    @PostMapping("/selectOrgPermissionByOrgId")
-    public ServerResponse selectOrgPermissionByOrgId(@RequestParam("organizationId") String organizationId) {
-        // 验证参数
-        if (StringUtils.isBlank(organizationId)) {
-            return ServerResponse.createByError("参数异常");
-        }
-        return ServerResponse.createBySuccess(organizationPermissionService.selectOrgPermissionByOrgId(organizationId));
     }
 
 
@@ -141,7 +117,7 @@ public class OrganizationController {
             @ApiImplicitParam(name = "token", value = "当前用户", paramType = "integer")
     })
     @GetMapping("/list")
-    @RequiresPermissions(permissions = {"system_manage:organization_manage:organization_manage"})
+    @RequiresPermissions(permissions = {"system_manage:organization_manage:select"})
     public ServerResponse list(@RequestParam(value = "organizationName", required = false) String organizationName,
                                @RequestParam(value = "pageNum", required = false) Integer pageNum,
                                @RequestParam(value = "pageSize", required = false) Integer pageSize,
@@ -225,6 +201,11 @@ public class OrganizationController {
         List<Organization> list = organizationService.selectOrganizationByExample(example);
         list.get(0).setSuperiorId("");
         return ServerResponse.createBySuccess(list);
-
     }
+
+    @GetMapping("/listAll")
+    public ServerResponse getOrganizationAll() {
+        return ServerResponse.createBySuccess(organizationService.selectOrganizationByExample(new Example(Organization.class)));
+    }
+
 }

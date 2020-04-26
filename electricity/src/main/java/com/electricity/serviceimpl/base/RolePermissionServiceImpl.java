@@ -19,8 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(rollbackFor = Exception.class)
 public class RolePermissionServiceImpl implements RolePermissionService {
 
-    @Autowired
-    private RoleMapper roleMapper;
+    private final RoleMapper roleMapper;
+
+    public RolePermissionServiceImpl(RoleMapper roleMapper) {
+        this.roleMapper = roleMapper;
+    }
 
     @Override
     public void insertRolePermission(Integer roleId, Integer[] permissionIds) {

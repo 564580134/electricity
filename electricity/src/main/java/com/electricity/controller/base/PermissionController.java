@@ -29,8 +29,11 @@ import java.util.List;
 @RequestMapping("/permission")
 public class PermissionController {
 
-    @Autowired
-    private PermissionService permissionService;
+    private final PermissionService permissionService;
+
+    public PermissionController(PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
 
     @ApiOperation(value = "查询所有权限信息")
     @GetMapping("/findPermissionAll")
@@ -59,12 +62,12 @@ public class PermissionController {
     })
     @GetMapping("/findPermissionByCondition")
     @RequiresPermissions(permissions = {
-            "system_manage:permission_manage:permission_manage"})
-    public ServerResponse findPermissionByCondition(@RequestParam(value = "permissionName",required = false) String permissionName,
-                                                    @RequestParam(value = "pageNum",defaultValue = "1",required = false)Integer pageNum,
-                                                    @RequestParam(value = "pageSize",defaultValue = "10",required = false) Integer pageSize,
+            "system_manage:permission_manage:select"})
+    public ServerResponse findPermissionByCondition(@RequestParam(value = "permissionName", required = false) String permissionName,
+                                                    @RequestParam(value = "pageNum", defaultValue = "1", required = false) Integer pageNum,
+                                                    @RequestParam(value = "pageSize", defaultValue = "10", required = false) Integer pageSize,
                                                     @RequestParam(value = "token") String token) {
-        if(token==null){
+        if (token == null) {
             return ServerResponse.createByErrorMessage("未获取到token");
         }
         User currentUser = JwtUtils.unsign(token, User.class);
@@ -75,13 +78,13 @@ public class PermissionController {
             // 设置分页
             PageHelper.startPage(pageNum, pageSize);
             // 查询数据
-            List<Permission> list = permissionService.findPermission(permissionName,currentUser.getUserId());
+            List<Permission> list = permissionService.findPermission(permissionName, currentUser.getUserId());
             // 获取分页数据
             PageInfo<Permission> pageInfo = new PageInfo<>(list);
             // 返回分页数据
             return ServerResponse.createBySuccess(pageInfo);
-        }else{
-            return ServerResponse.createBySuccess(permissionService.findPermission(permissionName,currentUser.getUserId()));
+        } else {
+            return ServerResponse.createBySuccess(permissionService.findPermission(permissionName, currentUser.getUserId()));
         }
     }
 
@@ -94,7 +97,7 @@ public class PermissionController {
             @ApiImplicitParam(name = "superiorId", value = "上级id", type = "integer")
     })
     @PostMapping("/insertPermission")
-    @RequiresPermissions(permissions = {"system_manage:permission_manage:permission_manage:insert"})
+    @RequiresPermissions(permissions = {"system_manage:permission_manage:insert"})
     public ServerResponse insertPermission(@RequestParam("permissionName") String permissionName,
                                            @RequestParam("permissionValue") String permissionValue,
                                            @RequestParam("permissionType") Integer permissionType,
@@ -122,7 +125,7 @@ public class PermissionController {
 
     @ApiOperation(value = "修改权限")
     @PostMapping("/updatePermission")
-    @RequiresPermissions(permissions = {"system_manage:permission_manage:permission_manage:update"})
+    @RequiresPermissions(permissions = {"system_manage:permission_manage:update"})
     public ServerResponse updatePermission(@ModelAttribute Permission permission) {
         Example example = new Example(Permission.class);
         Example.Criteria criteria = example.createCriteria();
@@ -140,7 +143,7 @@ public class PermissionController {
     }
 
     @ApiOperation(value = "删除权限")
-    @RequiresPermissions(permissions = {"system_manage:permission_manage:permission_manage:delete"})
+    @RequiresPermissions(permissions = {"system_manage:permission_manage:delete"})
     @ApiImplicitParam(name = "permissionIds", value = "权限id", required = true, type = "integer")
     @PostMapping("/deletePermission")
     public ServerResponse deletePermission(@RequestParam("permissionIds") Integer[] permissionIds) {

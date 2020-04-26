@@ -21,13 +21,6 @@ public interface RoleService {
      */
     boolean isExist(Example example);
 
-    /**
-     * 查询角色根据角色Id
-     *
-     * @param roleId 角色Id
-     * @return role
-     */
-    Role findRoleByRoleId(Integer roleId);
 
     /**
      * 查询角色根据条件
@@ -38,13 +31,6 @@ public interface RoleService {
      */
     List<Role> findRoleByCondition(String roleTitle, String organizationId);
 
-    /**
-     * 查询角色根据组织Id
-     *
-     * @param organizationId 组织Id
-     * @return list
-     */
-    List<Role> findRoleByOrganizationId(Integer organizationId);
 
     /**
      * 添加角色
@@ -67,4 +53,10 @@ public interface RoleService {
      */
     void deleteRole(Integer[] roleIds);
 
+    /**
+     * 查询所有角色
+     *
+     * @return
+     */
+    List<Role> selectRoleAll();
 }

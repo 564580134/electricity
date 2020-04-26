@@ -5,7 +5,7 @@
 <configuration>
 
     <settings>
-        <setting name="cacheEnabled" value="true"/>                         <!--开启二级缓存-->
+<!--        <setting name="cacheEnabled" value="true"/>                         &lt;!&ndash;开启二级缓存&ndash;&gt;-->
         <setting name="logImpl" value="STDOUT_LOGGING"/>                    <!--打印SQL语句-->
         <setting name="mapUnderscoreToCamelCase" value="true"/>             <!--驼峰命名-->
         <setting name="callSettersOnNulls" value="true"/>                   <!--如果sql查出空值 按照null返回-->

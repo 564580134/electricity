@@ -34,14 +34,17 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private UserRoleService userRoleService;
+    private final UserRoleService userRoleService;
 
-    @Autowired
-    private UserPermissionService userPermissionService;
+    private final UserPermissionService userPermissionService;
+
+    public UserController(UserService userService, UserRoleService userRoleService, UserPermissionService userPermissionService) {
+        this.userService = userService;
+        this.userRoleService = userRoleService;
+        this.userPermissionService = userPermissionService;
+    }
 
     @ApiOperation(value = "根据条件查询用户")
     @ApiImplicitParams({
@@ -65,7 +68,6 @@ public class UserController {
         if (currentUser == null) {
             return ServerResponse.createByErrorMessage("请先登录");
         }
-
         // 创建查询
         Map<String, Object> map = new HashMap<>();
         if (pageNum > 0) {
@@ -75,12 +77,6 @@ public class UserController {
         map.put("pageSize", pageSize);
         if (!StringUtils.isBlank(userName)) {
             map.put("userName", userName + "%");
-        }
-        // 角色查询
-        if (currentUser.getRoles().get(0).getRoleId() != 2) {
-            map.put("organizationId", currentUser.getOrganizationId() + "%");
-        } else {
-            map.put("organizationId", null);
         }
         // 查询
         List<User> list = userService.findUserByConditions(map);
@@ -104,13 +100,6 @@ public class UserController {
         return ServerResponse.createBySuccess(userService.isExist(account, userId));
     }
 
-    @ApiOperation(value = "根据用户Id查询用户权限信息")
-    @ApiImplicitParam(name = "userId", value = "用户Id", type = "integer")
-    @GetMapping("/findUserPermissionsByUserId")
-    public ServerResponse findUserPermissionsByUserId(@RequestParam("userId") Integer userId) {
-        return ServerResponse.createBySuccess("查询成功", userService.findUserById(userId).getUserPermissionList());
-    }
-
     @ApiOperation(value = "添加用户角色")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "userId", value = "用户id", required = true, type = "integer"),
@@ -125,19 +114,6 @@ public class UserController {
     }
 
 
-    @ApiOperation(value = "新增用户权限信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId", value = "用户Id", required = true, type = "integer"),
-            @ApiImplicitParam(name = "permissionIds", value = "权限Id", required = true, type = "integer"),
-    })
-    @PostMapping("/insertUserPermission")
-    @RequiresPermissions(permissions = {"system_manage:user_manage:user_manage:user_permission"})
-    public ServerResponse insertRolePermission(@RequestParam("userId") Integer userId,
-                                               @RequestParam("permissionIds") Integer[] permissionIds) {
-        userPermissionService.insertUserPermission(userId, permissionIds);
-        return ServerResponse.createBySuccessMessage("新增用户权限成功");
-    }
-
     @ApiOperation(value = "新增用户信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "userName", value = "用户名称", required = true, type = "string"),
@@ -148,13 +124,13 @@ public class UserController {
             @ApiImplicitParam(name = "organizationId", value = "组织id", required = true, type = "string")
     })
     @PostMapping("/insertUser")
-    @RequiresPermissions(permissions = {"system_manage:user_manage:user_manage:insert"})
-    public ServerResponse insertTeacher(@RequestParam("userName") String userName,
-                                        @RequestParam("password") String password,
-                                        @RequestParam("phone") String phone,
-                                        @RequestParam("email") String email,
-                                        @RequestParam("sex") String sex,
-                                        @RequestParam("organizationId") String organizationId) {
+    @RequiresPermissions(permissions = {"system_manage:user_manage:insert"})
+    public ServerResponse insertUser(@RequestParam("userName") String userName,
+                                     @RequestParam("password") String password,
+                                     @RequestParam("phone") String phone,
+                                     @RequestParam("email") String email,
+                                     @RequestParam("sex") String sex,
+                                     @RequestParam("organizationId") String organizationId) {
         userService.insertUser(userName, password, phone, email, sex, organizationId);
         return ServerResponse.createBySuccessMessage("新增用户成功");
     }
@@ -167,17 +143,18 @@ public class UserController {
             @ApiImplicitParam(name = "email", value = "邮箱", required = true, type = "string"),
             @ApiImplicitParam(name = "sex", value = "性别", required = true, type = "string"),
             @ApiImplicitParam(name = "organizationId", value = "组织id", required = true, type = "string"),
+            @ApiImplicitParam(name = "roleId", value = "角色id", required = true, type = "string"),
             @ApiImplicitParam(name = "status", value = "用户状态 0:可用 1:禁用", required = true, type = "string")
     })
-    @PostMapping("/updateTeacher")
-    @RequiresPermissions(permissions = {"system_manage:user_manage:user_manage:update"})
-    public ServerResponse updateTeacher(@RequestParam("userId") Integer userId,
-                                        @RequestParam("userName") String userName,
-                                        @RequestParam("phone") String phone,
-                                        @RequestParam("email") String email,
-                                        @RequestParam("sex") String sex,
-                                        @RequestParam("organizationId") String organizationId,
-                                        @RequestParam("status") String status) {
+    @PostMapping("/updateUser")
+    @RequiresPermissions(permissions = {"system_manage:user_manage:update"})
+    public ServerResponse updateUser(@RequestParam("userId") Integer userId,
+                                     @RequestParam("userName") String userName,
+                                     @RequestParam("phone") String phone,
+                                     @RequestParam("email") String email,
+                                     @RequestParam("sex") String sex,
+                                     @RequestParam("organizationId") String organizationId,
+                                     @RequestParam("status") String status) {
 
         userService.updateUser(userId, userName, phone, email, sex, organizationId, (status.equals("可用")) ? 0 : 1);
         return ServerResponse.createBySuccessMessage("修改成功");
@@ -186,7 +163,7 @@ public class UserController {
     @ApiOperation(value = "删除用户信息")
     @ApiImplicitParam(name = "userIds", value = "用户id", required = true, type = "integer")
     @PostMapping("/deleteUser")
-    @RequiresPermissions(permissions = {"system_manage:user_manage:user_manage:delete"})
+    @RequiresPermissions(permissions = {"system_manage:user_manage:delete"})
     public ServerResponse deleteUser(@RequestParam("userIds") Integer[] userIds) {
         for (Integer userId : userIds) {
             userService.deleteUser(new User().setUserId(userId).setIsDelete(UserStatusEnum.HAVE_DELETE.getCode()));
@@ -195,29 +172,23 @@ public class UserController {
     }
 
 
-    @ApiOperation(value = "根组织信息查询业务员")
-    @ApiImplicitParam(name = "token", value = "当前用户", required = true, type = "String")
-    @PostMapping("/findUserByOrganizationId")
-    public ServerResponse findUserByOrganizationId(@RequestParam("token") String token) {
-        // 校验数据
-        if (StringUtils.isBlank(token)) {
-            return ServerResponse.createByError("未登录");
-        }
-        // 解析当前用户
-        User currentUser = JwtUtils.unsign(token, User.class);
-        // 验证
-        if (currentUser == null) {
-            return ServerResponse.createByError("未登录");
-        }
-        if (currentUser.getRoles().get(0).getRoleId() != 6) {
-            Example example = new Example(User.class);
-            example.createCriteria().andLike("organizationId", currentUser.getOrganizationId() + "%")
-                    .andNotEqualTo("userId", currentUser.getUserId());
-            List<User> users = userService.findUserByExample(example);
-            return ServerResponse.createBySuccess(users);
-        } else {
-            return ServerResponse.createBySuccess();
-        }
+    //    @ApiOperation(value = "根据用户Id查询用户权限信息")
+//    @ApiImplicitParam(name = "userId", value = "用户Id", type = "integer")
+//    @GetMapping("/findUserPermissionsByUserId")
+//    public ServerResponse findUserPermissionsByUserId(@RequestParam("userId") Integer userId) {
+//        return ServerResponse.createBySuccess("查询成功", userService.findUserById(userId).getUserPermissionList());
+//    }
+    //    @ApiOperation(value = "新增用户权限信息")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "userId", value = "用户Id", required = true, type = "integer"),
+//            @ApiImplicitParam(name = "permissionIds", value = "权限Id", required = true, type = "integer"),
+//    })
+//    @PostMapping("/insertUserPermission")
+//    @RequiresPermissions(permissions = {"system_manage:user_manage:user_manage:user_permission"})
+//    public ServerResponse insertRolePermission(@RequestParam("userId") Integer userId,
+//                                               @RequestParam("permissionIds") Integer[] permissionIds) {
+//        userPermissionService.insertUserPermission(userId, permissionIds);
+//        return ServerResponse.createBySuccessMessage("新增用户权限成功");
+//    }
 
-    }
 }

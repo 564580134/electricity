@@ -23,12 +23,12 @@ import java.util.List;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class RoleServiceImpl implements RoleService {
+    @Autowired
+    RoleMapper roleMapper;
 
     @Autowired
-    private RoleMapper roleMapper;
+    UserMapper userMapper;
 
-    @Autowired
-    private UserMapper userMapper;
 
     @Override
     public boolean isExist(Example example) {
@@ -37,19 +37,10 @@ public class RoleServiceImpl implements RoleService {
         return role != null;
     }
 
-    @Override
-    public Role findRoleByRoleId(Integer roleId) {
-        return roleMapper.findRoleByRoleId(roleId);
-    }
 
     @Override
     public List<Role> findRoleByCondition(String roleTitle, String organizationId) {
         return roleMapper.findRoleByCondition(roleTitle, organizationId);
-    }
-
-    @Override
-    public List<Role> findRoleByOrganizationId(Integer organizationId) {
-        return roleMapper.findRoleByOrganizationId(organizationId);
     }
 
     @Override
@@ -79,5 +70,10 @@ public class RoleServiceImpl implements RoleService {
                 userMapper.deleteUserRoleByRoleId(roleId);
             }
         }
+    }
+
+    @Override
+    public List<Role> selectRoleAll() {
+        return roleMapper.selectAll();
     }
 }
