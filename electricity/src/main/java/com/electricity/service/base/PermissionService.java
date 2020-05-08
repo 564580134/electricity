@@ -38,8 +38,9 @@ public interface PermissionService {
 
     /**
      * 查询权限根据条件
+     *
      * @param permissionName 权限名
-     * @param userId 权限Id
+     * @param userId         权限Id
      * @return
      */
     List<Permission> findPermission(String permissionName, Integer userId);
@@ -65,4 +66,6 @@ public interface PermissionService {
      */
     void deletePermission(Integer[] permissionIds);
 
+
+    List<Permission> findPermissionByRoleId(Integer roleId);
 }

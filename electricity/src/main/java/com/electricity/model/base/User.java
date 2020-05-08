@@ -102,6 +102,16 @@ public class User implements Serializable {
     private List<Role> roles;
 
     /**
+     * 用户角色
+     */
+    private Integer roleId;
+
+    /**
+     * 用户角色
+     */
+    private String roleName;
+
+    /**
      * 所属组织
      */
     private Organization organization;

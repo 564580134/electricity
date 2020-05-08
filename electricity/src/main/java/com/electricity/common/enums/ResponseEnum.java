@@ -12,7 +12,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ResponseEnum {
+public enum  ResponseEnum {
 
     /**
      * 响应成功

@@ -34,11 +34,11 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserController {
 
-    private final UserService userService;
+    final UserService userService;
 
-    private final UserRoleService userRoleService;
+    final UserRoleService userRoleService;
 
-    private final UserPermissionService userPermissionService;
+    final UserPermissionService userPermissionService;
 
     public UserController(UserService userService, UserRoleService userRoleService, UserPermissionService userPermissionService) {
         this.userService = userService;
@@ -169,6 +169,16 @@ public class UserController {
             userService.deleteUser(new User().setUserId(userId).setIsDelete(UserStatusEnum.HAVE_DELETE.getCode()));
         }
         return ServerResponse.createBySuccessMessage("删除成功");
+    }
+
+
+    @ApiOperation(value = "根据用户id查询用户信息")
+    @ApiImplicitParam(name = "userId", value = "用户id", required = true, type = "integer")
+    @PostMapping("/findUserById")
+    public ServerResponse findUserById(@RequestParam("userId") Integer userId) {
+
+
+        return ServerResponse.createBySuccess(userService.findUserById(userId));
     }
 
 

@@ -4,7 +4,7 @@
         "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
 <mapper namespace="com.electricity.mapper.base.UserMapper">
 
-    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+    <!--    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>-->
 
     <resultMap type="com.electricity.model.base.User" id="UserResuleMap">
         <id property="userId" column="user_id"/>
@@ -196,7 +196,8 @@
 
     <select id="findUserByExample" parameterType="map" resultType="com.electricity.model.base.User">
         SELECT
-        u.user_id,u.account,u.user_name,u.sex,u.phone,u.email,o.organization_name,u.status,u.update_time,u.organization_id
+        u.user_id,u.account,u.user_name,u.sex,u.phone,u.email,o.organization_name,u.status,u.update_time,u.role_id,u.organization_id,
+        (SELECT r1.role_title FROM role r1 WHERE r1.role_id = u.role_id) AS role_name
         FROM user u ,organization o
         WHERE u.organization_id = o.organization_id
         AND u.is_delete = 0

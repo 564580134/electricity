@@ -25,11 +25,14 @@ import java.util.Map;
 @Transactional(rollbackFor = Exception.class)
 public class PermissionServiceImpl implements PermissionService {
 
-    @Autowired
-    private PermissionMapper permissionMapper;
+    final PermissionMapper permissionMapper;
 
-    @Autowired
-    private RoleMapper roleMapper;
+    final RoleMapper roleMapper;
+
+    public PermissionServiceImpl(PermissionMapper permissionMapper, RoleMapper roleMapper) {
+        this.permissionMapper = permissionMapper;
+        this.roleMapper = roleMapper;
+    }
 
     @Override
     public boolean isExist(Example example) {
@@ -84,6 +87,11 @@ public class PermissionServiceImpl implements PermissionService {
             permissionMapper.deleteByPrimaryKey(permissionId);
             roleMapper.deleteRolePermission(null, permissionId);
         }
+    }
+
+    @Override
+    public List<Permission> findPermissionByRoleId(Integer roleId) {
+        return permissionMapper.findPermissionByRoleId(roleId);
     }
 }
 

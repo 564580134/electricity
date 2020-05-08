@@ -32,4 +32,12 @@ public interface PermissionMapper extends Mapper<Permission> {
      * @return
      */
     List<Permission> findPermission(Map<String, Object> map);
+
+    /**
+     * 根据角色编号查询权限
+     *
+     * @param roleId 角色编号
+     * @return
+     */
+    List<Permission> findPermissionByRoleId(Integer roleId);
 }

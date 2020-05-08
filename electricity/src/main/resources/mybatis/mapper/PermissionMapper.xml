@@ -4,7 +4,7 @@
         "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
 <mapper namespace="com.electricity.mapper.base.PermissionMapper">
 
-    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+<!--    <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>-->
 
     <select id="findPermissionById" parameterType="integer" resultType="java.lang.Integer">
         (select b.permission_id from permission b where exists
@@ -27,5 +27,11 @@
             and p.permission_name like '${permissionName}%'
         </if>
         )
+    </select>
+    <select id="findPermissionByRoleId" resultType="com.electricity.model.base.Permission">
+        SELECT p.*
+        FROM permission p ,role_permission rp
+        WHERE  rp.permission_id = p.permission_id
+        AND rp.role_id = #{roleId}
     </select>
 </mapper>

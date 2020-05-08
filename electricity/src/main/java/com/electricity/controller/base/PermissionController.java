@@ -151,4 +151,12 @@ public class PermissionController {
         permissionService.deletePermission(permissionIds);
         return ServerResponse.createBySuccessMessage("删除权限成功");
     }
+
+
+    @ApiOperation(value = "根据角色查询权限")
+    @PostMapping("/findPermissionByRoleId")
+    public ServerResponse findPermissionByRoleId(Integer roleId) {
+        return ServerResponse.createBySuccess(permissionService.findPermissionByRoleId(roleId));
+    }
+
 }
