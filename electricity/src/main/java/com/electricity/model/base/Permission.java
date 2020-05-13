@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Description: Permission
@@ -78,4 +79,8 @@ public class Permission implements Serializable {
      */
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GTM+8")
     private Date updateTime;
+
+
+    @ApiModelProperty(value = "权限子集", hidden = true)
+    private List<Permission> permissionList;
 }

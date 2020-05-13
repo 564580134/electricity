@@ -43,11 +43,6 @@
     <resultMap type="com.electricity.model.base.Role" id="RoleReusltMap">
         <id property="roleId" column="role_id"/>
         <result property="roleName" column="role_name"/>
-        <collection property="permissionList" ofType="com.electricity.model.base.Permission"
-                    select="findPermissionByRoleId" column="role_id">
-            <id property="permissionId" column="permission_id"/>
-            <result property="permissionName" column="permission_name"/>
-        </collection>
     </resultMap>
 
     <!-- 查询用户根据Id -->

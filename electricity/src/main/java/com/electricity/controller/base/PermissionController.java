@@ -154,9 +154,16 @@ public class PermissionController {
 
 
     @ApiOperation(value = "根据角色查询权限")
-    @PostMapping("/findPermissionByRoleId")
+    @GetMapping("/findPermissionByRoleId")
     public ServerResponse findPermissionByRoleId(Integer roleId) {
         return ServerResponse.createBySuccess(permissionService.findPermissionByRoleId(roleId));
+    }
+
+
+    @ApiOperation(value = "获取权限树")
+    @GetMapping("/permissionZTree")
+    public ServerResponse permissionZTree() {
+        return ServerResponse.createBySuccess(permissionService.permissionZTree());
     }
 
 }

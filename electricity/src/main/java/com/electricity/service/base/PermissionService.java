@@ -67,5 +67,15 @@ public interface PermissionService {
     void deletePermission(Integer[] permissionIds);
 
 
+    /**
+     * 根据角色编号查询权限信息
+     *
+     * @param roleId 角色编号
+     */
     List<Permission> findPermissionByRoleId(Integer roleId);
+
+    /**
+     * 获取权限树
+     */
+    List<Permission> permissionZTree();
 }

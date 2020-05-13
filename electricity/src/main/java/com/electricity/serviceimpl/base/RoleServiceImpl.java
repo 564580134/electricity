@@ -23,11 +23,16 @@ import java.util.List;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class RoleServiceImpl implements RoleService {
-    @Autowired
+    final
     RoleMapper roleMapper;
 
-    @Autowired
+    final
     UserMapper userMapper;
+
+    public RoleServiceImpl(RoleMapper roleMapper, UserMapper userMapper) {
+        this.roleMapper = roleMapper;
+        this.userMapper = userMapper;
+    }
 
 
     @Override

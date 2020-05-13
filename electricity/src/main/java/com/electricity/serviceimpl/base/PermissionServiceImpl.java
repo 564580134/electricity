@@ -6,14 +6,13 @@ import com.electricity.mapper.base.PermissionMapper;
 import com.electricity.mapper.base.RoleMapper;
 import com.electricity.model.base.Permission;
 import com.electricity.service.base.PermissionService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Description: PermissionServiceImpl
@@ -23,6 +22,7 @@ import java.util.Map;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
+@Slf4j
 public class PermissionServiceImpl implements PermissionService {
 
     final PermissionMapper permissionMapper;
@@ -93,5 +93,44 @@ public class PermissionServiceImpl implements PermissionService {
     public List<Permission> findPermissionByRoleId(Integer roleId) {
         return permissionMapper.findPermissionByRoleId(roleId);
     }
+
+
+    @Override
+    public List<Permission> permissionZTree() {
+        // 获取所有的权限数据
+        List<Permission> permissions = permissionMapper.selectAll();
+        // 定义 目录、菜单、按钮,并放入对应数据
+        List<Permission> directoryLists = new ArrayList<>();
+        List<Permission> menuLists = new ArrayList<>();
+        List<Permission> buttonLists = new ArrayList<>();
+        permissions.forEach((Permission permission) -> {
+            if (permission.getPermissionType() == 1)
+                directoryLists.add(permission);
+        });
+        permissions.forEach((Permission permission) -> {
+            if (permission.getPermissionType() == 2)
+                menuLists.add(permission);
+        });
+
+        // 循环遍历第一层 目录
+        for (int i = 0; i < directoryLists.size(); i++) {
+            directoryLists.get(i).setPermissionList(GetMenuListByDirectoryId(directoryLists.get(i).getPermissionId(),menuLists));
+        }
+        return directoryLists;
+    }
+
+    public List<Permission> GetMenuListByDirectoryId(Integer directoryId, List<Permission> permissions) {
+        List<Permission> menuList = new ArrayList<>();
+        permissions.forEach(
+                permission -> {
+                    if (permission.getSuperiorId() == directoryId) {
+                        menuList.add(permission);
+                    }
+                }
+        );
+        log.info("目录:" + directoryId + ",菜单:" + menuList);
+        return menuList;
+    }
+
 }
 
